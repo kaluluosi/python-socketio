@@ -108,6 +108,8 @@ class AsyncServer(server.Server):
         super().__init__(client_manager=client_manager, logger=logger,
                          json=json, async_handlers=async_handlers,
                          namespaces=namespaces, **kwargs)
+        
+        self.event_tasks=[]
 
     def is_asyncio_based(self):
         return True
@@ -513,8 +515,10 @@ class AsyncServer(server.Server):
                                 sid, namespace)
             return
         if self.async_handlers:
-            self.start_background_task(self._handle_event_internal, self, sid,
+            task:asyncio.Task = self.start_background_task(self._handle_event_internal, self, sid,
                                        eio_sid, data, namespace, id)
+            task.add_done_callback(lambda: self.event_tasks.remove(task))
+            self.event_tasks.append(task)
         else:
             await self._handle_event_internal(self, sid, eio_sid, data,
                                               namespace, id)

@@ -517,7 +517,7 @@ class AsyncServer(server.Server):
         if self.async_handlers:
             task:asyncio.Task = self.start_background_task(self._handle_event_internal, self, sid,
                                        eio_sid, data, namespace, id)
-            task.add_done_callback(lambda: self.event_tasks.remove(task))
+            task.add_done_callback(lambda task: self.event_tasks.remove(task))
             self.event_tasks.append(task)
         else:
             await self._handle_event_internal(self, sid, eio_sid, data,
